@@ -4,4 +4,4 @@ from contacts.models import Contact
 class ContactSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Contact
-        fields = ('url','name','vcard')
+        fields = ('name','vcard','url')
