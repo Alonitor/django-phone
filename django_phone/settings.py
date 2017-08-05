@@ -25,12 +25,13 @@ SECRET_KEY = '4m8o$&8ur0gp8vprxj)o)ax7ybm4^z=32xg=8)@y9r0mrxg%sx'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'contacts.apps.ContactsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
