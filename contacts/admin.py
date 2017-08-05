@@ -1,5 +1,9 @@
 from django.contrib import admin
 
-from .models import Contacts
+from .models import Contact
 
-admin.site.register(Contacts)
+class ContactAdmin(admin.ModelAdmin):
+    fields = ['name','vcard']
+
+admin.site.register(Contact,ContactAdmin)
+
