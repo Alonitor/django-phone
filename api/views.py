@@ -5,13 +5,8 @@ from rest_framework import generics, filters
 
 class ContactViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all().order_by('id')
-    serializer_class = ContactSerializer
-    filter_backends = ( filters.SearchFilter, )
+    serializer_class = ContactSerializer       
+    
+    filter_backends = ( filters.SearchFilter, filters.DjangoFilterBackend, )
+    filter_fields = ('sync',)
     search_fields = ('vcard',)    
-
-
-class ContactList(generics.ListAPIView):
-    queryset = Contact.objects.all()
-    serializer_class = ContactSerializer
-    filter_backends = ( filters.SearchFilter, )
-    search_fields = ('vcard',)
