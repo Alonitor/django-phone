@@ -1,5 +1,6 @@
 *.swp
 *.vcf
+*.my.sh
 *.sqlite3
 migrations/
 
