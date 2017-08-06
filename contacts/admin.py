@@ -7,13 +7,13 @@ def mark_sync(modeladmin, request, queryset):
 
 def mark_not_sync(modeladmin, request, queryset):
     queryset.update(sync=False)
-    mark_sync.short_description = "Mark SYNC False"
+    mark_not_sync.short_description = "Mark SYNC = False"
 
 class ContactAdmin(admin.ModelAdmin):
     list_display = ['name','vcard','sync']
     search_fields = ['vcard']
     list_filter = ('sync',)
-    list_per_page = 10
+    list_per_page = 100
     ordering = ['-sync']
     actions = [mark_sync,mark_not_sync]
 

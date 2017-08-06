@@ -1,4 +1,5 @@
 *.swp
+*.vcf
 *.sqlite3
 migrations/
 
