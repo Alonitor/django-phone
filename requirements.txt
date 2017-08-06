@@ -1,0 +1,4 @@
+django<1.12
+rest_framework
+django-filter
+django-captcha-admin
