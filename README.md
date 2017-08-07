@@ -1,6 +1,6 @@
 # Features
-Import/Export .vcf vCard file via REST api
-Search/Filter/Bulk Mark contacts
+- Import/Export .vcf vCard file via REST api
+- Search/Filter/Bulk Mark contacts in admin panel
 
 # Docker run example
 ```
