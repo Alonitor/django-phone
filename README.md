@@ -7,5 +7,10 @@
 docker run --name django-phone --net host -d fzinfz/django:phone python manage.py runserver 0:8000
 docker exec -it django-phone python manage.py createsuperuser
 ```
-then visit http://server_ip:8000
+Then visit 
+- http://server_ip:8000
+- http://server_ip:8000/api
+
+# Import/Export contacts
+Run `./scripts/vcard.py` for help.
 
