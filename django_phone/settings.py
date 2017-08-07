@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')  
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY','your-secret-key')  
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -130,7 +130,8 @@ REST_FRAMEWORK = {
 }
 
 # https://pypi.python.org/pypi/django-captcha-admin
-RECAPTCHA_ADMIN = False # *Custom*
+RECAPTCHA_ADMIN = eval(os.environ.get('RECAPTCHA_ADMIN_ENABLE','False'))
+    
 if RECAPTCHA_ADMIN:
     INSTALLED_APPS += [
         'captcha_admin',
