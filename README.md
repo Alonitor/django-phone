@@ -1,8 +1,8 @@
 # Features
 - Import/Export .vcf vCard file via REST api
-- Search/Filter/Bulk Mark contacts in admin panel
+- Search/Filter/Bulk Mark contacts in Django Admin panel
 
-# Docker run example
+# Docker run for demo
 ```
 docker run --name django-phone --net host -d fzinfz/django:phone python manage.py runserver 0:8000
 docker exec -it django-phone python manage.py createsuperuser
