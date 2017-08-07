@@ -1,10 +1,6 @@
 #!/bin/bash
 
-if [ -z $1 ];then
-	ip=127.0.0.1
-else
-	ip=$1
-fi
+ip=127.0.0.1
 
 uwsgi   --socket $ip:3031 \
 	--chdir $(pwd) \
