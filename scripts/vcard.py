@@ -10,11 +10,11 @@ import math
 import time
 
 def main():    
-    url = "http://127.0.0.1:8000/api/contacts/"
+    url_default = "http://127.0.0.1:8000/api/contacts/"
 
     parser = argparse.ArgumentParser(description='export vCard FILE to REST URL')
     parser.add_argument('-f','--file', nargs=1, help='import vCard .vcf file')
-    parser.add_argument('-r','--url', nargs='?', help='REST api url', default=url)
+    parser.add_argument('-r','--url', nargs='?', help='REST api url, default: ' + url_default, default=url_default)
     parser.add_argument('-u','--user', nargs=1, help='REST api url user')
     parser.add_argument('-p','--password', nargs=1, help='REST api url password')
     parser.add_argument('-e','--export', action='store_true', help='export SYNC items to vCard .vcf file')
