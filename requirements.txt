@@ -4,3 +4,5 @@ djangorestframework
 markdown
 django-filter
 django-captcha-admin
+django-bootstrap3
+vobject

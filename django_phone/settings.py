@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'contacts.apps.ContactsConfig',
     'rest_framework',
     'django_filters',
+    'bootstrap3',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

@@ -1,0 +1,15 @@
+{% load bootstrap3 %}
+{% bootstrap_css %}
+
+{% if contact_list %}
+    <div class="container-fluid">
+    {% for contact in contact_list %}
+        <div>
+		<a href="{{ contact.get_absolute_url }}">{{ contact.name }}</a><br /> 
+		<pre>{{ contact.get_content }}</pre>
+	</div>
+    {% endfor %}
+    </div>
+{% else %}
+    <p>No contacts are available.</p>
+{% endif %}
