@@ -14,11 +14,11 @@ def main():
 
     parser = argparse.ArgumentParser(description='import/export vCard FILE via REST URL', 
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-f','--file', nargs=1, help='import vCard .vcf file(Tested V3)')
+    parser.add_argument('-i','--importfile', nargs=1, help='[Import Mode] Followed by vCard .vcf file(Tested Version 3)')
+    parser.add_argument('-e','--export', action='store_true', help='[Export Mode] export items marked `SYNC`, auto generate .vcf file in current folder.')
     parser.add_argument('-r','--url', nargs='?', help='REST api url', default=url_default)
     parser.add_argument('-u','--user', nargs=1, help='REST api url user')
     parser.add_argument('-p','--password', nargs=1, help='REST api url password')
-    parser.add_argument('-e','--export', action='store_true', help='export SYNC items to vCard .vcf file. Run in `import` mode without this switch.')
 
     if len(sys.argv)==1:
         parser.print_help()
@@ -27,7 +27,7 @@ def main():
     args = parser.parse_args()
     print(args)
 
-    if not (args.file is None):
+    if not (args.importfile is None):
         import_cvf(args.file[0], args.url, args.user[0], args.password[0] )
         
     if args.export:
