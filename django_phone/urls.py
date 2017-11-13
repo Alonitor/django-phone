@@ -22,7 +22,13 @@ else:
     from django.contrib import admin
 
 urlpatterns = [    
-    url(r'^', admin.site.urls, name='login'),
+    url(r'^admin/', admin.site.urls, name='login'),
     url(r'^contact/', include('contacts.urls'), name='contacts'),
     url(r'^api/', include('api.urls')),
+]
+
+urlpatterns += [
+#    url('^accounts/', include('django.contrib.auth.urls')),
+url(r'^accounts/', include('registration.backends.default.urls')),
+#url(r'^accounts/', include('registration.backends.simple.urls')),
 ]
