@@ -1,6 +1,7 @@
-django<1.12
+django
 uwsgi
 djangorestframework
 markdown
 django-filter
 django-captcha-admin
+vobject

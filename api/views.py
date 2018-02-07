@@ -7,6 +7,6 @@ class ContactViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all().order_by('id')
     serializer_class = ContactSerializer       
     
-    filter_backends = ( filters.SearchFilter, filters.DjangoFilterBackend, )
+    filter_backends = ( filters.SearchFilter, filters.BaseFilterBackend, )
     filter_fields = ('sync',)
     search_fields = ('vcard',)    

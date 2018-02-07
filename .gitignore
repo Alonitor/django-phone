@@ -4,6 +4,7 @@
 *.my.sh
 *.sqlite3
 migrations/
+static/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

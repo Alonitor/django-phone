@@ -4,7 +4,7 @@
 
 # Docker run for demo
 ```
-docker run --name django-phone --net host -d fzinfz/django:phone python manage.py runserver 0:8000
+docker run --name django-phone --net host -d fzinfz/tools:django-phone python manage.py runserver 0:8000
 docker exec -it django-phone python manage.py createsuperuser
 ```
 Then visit 
