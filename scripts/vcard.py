@@ -28,7 +28,7 @@ def main():
     print(args)
 
     if not (args.importfile is None):
-        import_cvf(args.file[0], args.url, args.user[0], args.password[0] )
+        import_cvf(args.importfile[0], args.url, args.user[0], args.password[0] )
         
     if args.export:
         export_cvf(args.url, args.user[0], args.password[0] )
@@ -62,7 +62,10 @@ def export_cvf(url, user, password, sync=2):
     while True:
         url += "?sync=" + str(sync) + "&page=" + str(page)
         r = requests.get(url, auth = (user, password))
-        j = json.loads(r.content)    
+        j = json.loads(r.content)
+        if j is None:
+            print("No result")
+            return
         contact_list += [ c['vcard'] for c in j['results'] ]
         
         total = j['count']

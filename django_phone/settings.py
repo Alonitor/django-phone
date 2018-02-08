@@ -32,8 +32,8 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'contacts.apps.ContactsConfig',
-    'rest_framework',
     'django_filters',
+    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -128,8 +128,7 @@ STATIC_URL = '/static/'
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAdminUser',
-    ],
-    'PAGE_SIZE': 10    
+    ]
 }
 
 # https://pypi.python.org/pypi/django-captcha-admin

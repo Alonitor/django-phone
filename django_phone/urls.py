@@ -23,7 +23,7 @@ else:
 
 urlpatterns = [    
     url(r'^', admin.site.urls),
-    url(r'^admin/', admin.site.urls),
+    #url(r'^admin/', admin.site.urls),
     url(r'^contacts/', include('contacts.urls')),
     url(r'^api/', include('api.urls')),
 ]
