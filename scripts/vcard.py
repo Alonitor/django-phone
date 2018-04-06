@@ -10,7 +10,7 @@ import math
 import time
 
 def main():    
-    url_default = "http://127.0.0.1:8000/api/contacts/"
+    url_default = "http://localhost:8000/api/contacts/"
 
     parser = argparse.ArgumentParser(description='import/export vCard FILE via REST URL', 
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
