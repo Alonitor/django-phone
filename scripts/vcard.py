@@ -66,9 +66,16 @@ def export_cvf(url, user, password, sync=2):
         if j is None:
             print("No result")
             return
-        contact_list += [ c['vcard'] for c in j['results'] ]
+        #contact_list += [ c['vcard'] for c in j['results'] ]
+
+        #print('this is it: \n')
+        #print(j)
+        for c in j :
+            contact_list.append(c['vcard'])
         
-        total = j['count']
+        print(contact_list)
+
+        total = len(j)
         page += 1
         print(str( len(contact_list) ) + " / " + str(total) )
         
