@@ -1,10 +1,20 @@
 from django.db import models
 import vobject
+import uuid
+from radicale.storage import random_uuid4
+
 
 class Contact(models.Model):
     name = models.CharField(max_length=50)
     vcard = models.TextField(blank=True)
     sync = models.NullBooleanField()
+    created = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+    # path = models.TextField('Path', unique=True)
+    #path = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=True)
+    path = models.TextField(default=random_uuid4() + '.vcf')
+    collection = models.TextField('Collection', default='/odd/')
+    etag = models.TextField(default=random_uuid4())
 
     def __str__(self):
         return 'Contact: ' + self.name
@@ -17,3 +27,5 @@ class Contact(models.Model):
         j.fn.value = self.name
         self.vcard = j.serialize()
         super().save()
+
+

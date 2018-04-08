@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djradicale',
 ]
 
 MIDDLEWARE = [
@@ -143,3 +144,79 @@ if RECAPTCHA_ADMIN:
     RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY') 
     
     
+###############  DJRadicale ########################
+STATIC_URL = '/static/'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'djradicale': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            # 'level': 'ERROR',
+            'propagate': True,
+        },
+    }
+}
+
+DJRADICALE_CONFIG = {
+    # 'server': {
+    #     'base_prefix': '/pim/',
+    #     'realm': 'Radicale - Password Required',
+    # },
+    # 'encoding': {
+    #     'request': 'utf-8',
+    #     'stock': 'utf-8',
+    # },
+    'auth': {
+        'type': 'djradicale.auth.django',
+    },
+    'rights': {
+        'type': 'djradicale.rights.django',
+    },
+    'storage': {
+        'type': 'djradicale.storage.django',
+    },
+    # 'well-known': {
+    #     'carddav': '/pim/%(user)s/addressbook.vcf',
+    #     'caldav': '/pim/%(user)s/calendar.ics',
+    # },
+}
+
+DJRADICALE_CONFIG_EXTRA = {
+    'server': {
+        'base_prefix': '/pim/',
+    },
+}
+
+DJRADICALE_RIGHTS = {
+    'rw': {
+        'user': '.+',
+        'collection': '^/%(login)s/[a-z0-9\.\-_]+\.(vcf|ics)$/',
+        'permission': 'rw',
+    },
+    'rw-root': {
+        'user': '.+',
+        'collection': '^/%(login)s/$',
+        'permission': 'rw',
+    },
+    'rw-pim': {
+        'user': '.+',
+        'collection': '^/pim/%(login)s/[a-z0-9\.\-_]+\.(vcf|ics)$/',
+        'permission': 'rw',
+    },
+    'rw-root-pim': {
+        'user': '.+',
+        'collection': '^/pim/%(login)s/$',
+        'permission': 'rw',
+    },
+}
+
+###############  END DJRadicale ########################
