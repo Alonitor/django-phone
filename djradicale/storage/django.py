@@ -37,6 +37,9 @@ logger = logging.getLogger('djradicale')
 
 
 class Collection(BaseCollection):
+    main_collection_path = 'addresses/'
+    user_collection_path = 'pim/odd/'
+
     def __init__(self, path, **kwargs):
         self.path = path # This is uuid
         # self.path = '/odd/'
@@ -45,35 +48,35 @@ class Collection(BaseCollection):
     def discover(cls, path, depth='0'):
         # for c in DBCollection.objects.filter(parent_path=path or ''):
         #     yield cls(c.path)
-        main_collection_path = 'addresses/'
-        user_collection_path = 'pim/odd/'
+        #main_collection_path = 'addresses'
+        #user_collection_path = 'pim/odd/'
 
         if depth != '0':
             for c in Contact.objects.filter(collection=path or ''):
-                yield cls(user_collection_path + main_collection_path + c.path)
+                yield cls(cls.user_collection_path + cls.main_collection_path + c.path)
 
             if path == '/pim/':
-                yield cls(user_collection_path + main_collection_path)
+                yield cls(cls.user_collection_path + cls.main_collection_path)
                 # return
 
             elif path == '/pim/.well-known/carddav':
-                yield cls(user_collection_path + main_collection_path)
+                yield cls(cls.user_collection_path + cls.main_collection_path)
 
             elif path == '/odd/':
                 # yield cls('odd/' + main_collection_path)
-                yield cls(main_collection_path)
+                yield cls(cls.main_collection_path)
             elif path == '/pim/odd/addresses/':
                 for c in Contact.objects.filter(collection=path or ''):
                     yield cls(path + c.path)
         else:
             # yield cls('odd/' + main_collection_path)
             if path == '/pim/.well-known/carddav':
-                yield cls(user_collection_path + main_collection_path)
+                yield cls(cls.user_collection_path + cls.main_collection_path)
             else:
                 for c in Contact.objects.filter(collection=path or ''):
-                    yield cls(user_collection_path + main_collection_path + c.path)
+                    yield cls(cls.user_collection_path + cls.main_collection_path + c.path)
 
-                yield cls(user_collection_path + main_collection_path)
+                yield cls(cls.user_collection_path + cls.main_collection_path)
 
 
     @classmethod
@@ -85,7 +88,7 @@ class Collection(BaseCollection):
         # #     p, created = DBProperties.objects.filter(path=href)
         # return c
 
-        c, created = Contact.objects.get_or_create(path=href, collection='/addresses/')
+        c, created = Contact.objects.get_or_create(path=href, collection=cls.user_collection_path + cls.main_collection_path)
         return c
 
 
@@ -116,7 +119,8 @@ class Collection(BaseCollection):
 
         try:
             item = (Contact.objects.filter(collection=self.path).get(path=href))
-            return Item(self, href=item.path, last_modified=self.last_modified, text=item.name, item=item.vcard, name=item.name)
+            # return Item(self, href=item.path, last_modified=self.last_modified, text=item.name, item=item.vcard, name=item.name)
+            return Item(self, href=item.path, last_modified=self.last_modified, text=item.name, item=item.vcard, name="VCARD")
         except Contact.DoesNotExist:
             pass
 
@@ -138,7 +142,7 @@ class Collection(BaseCollection):
         items = (Contact.objects.filter(collection=self.path).filter(path_in=hrefs))
 
         for item in items:
-            yield item.path, Item(self, href=item.path, last_modified=self.last_modified, name=item.name, etag=item.etag, text=item.vcard, vobject=item.vcard)
+            yield item.path, Item(self, href=item.path, last_modified=self.last_modified, name="VCARD", etag=item.etag, text=item.vcard, vobject=item.vcard)
 
     def has(self, href):
         # return (
@@ -163,47 +167,68 @@ class Collection(BaseCollection):
 
     def get_meta(self, key=None):
         if self.path == 'odd':
-            meta = '/addressbook'
+            meta = '/addresses'
         else:
-            if key == 'tag':
-                meta = "VADDRESSBOOK"
-            elif key == 'D:displayname':
-                meta = 'Odd-Henrik name'
-            elif key == 'CR:supported-address-data':
-                #  <C:address-data-type content-type="text/vcard" version="3.0"/>
-                # https://tools.ietf.org/html/rfc6352#section-5.2
-                meta = 'text/vcard'
-            elif key is None:
-                if self.path == '/pim/odd/':
-                    # meta = 'addressbook.vcf' # todo: bør dette kanskje være '/odd/'
-                    meta = self.path
-
-                else:
+            if self.path == 'pim/odd/addresses/':
+                if key == 'tag':
+                    meta = "VADDRESSBOOK"
+                elif key == 'D:displayname':
+                    meta = 'Odd-Henrik Addressbook'
+                elif key == 'CR:supported-address-data':
+                    #  <C:address-data-type content-type="text/vcard" version="3.0"/>
+                    # https://tools.ietf.org/html/rfc6352#section-5.2
+                    meta = 'text/xml' # TODO: Hmm dette eller text/vcard??
+                elif key is None:
+                    # Todo: is this correct for collection?
                     recordname = os.path.basename(self.path)
                     p = Contact.objects.get(path=recordname)
-                    v = vobject.readOne(p.vcard)
-                    # meta = 'VCARD'
-                    #
-                    # pattern = "BEGIN:VCARD.*?END:VCARD"
-                    # result = re.findall(pattern, p.vcard, re.DOTALL)
-                    # total = len(result)
-                    #
-                    # for s in result:
-                    #     v = vobject.readOne(s)
-                    #
-                    #     o = {
-                    #         "name": v.fn.value,
-                    #         "vcard": s
-                    #     }
-                    #
-                    #
-                    # #return
-                    # # meta = json.loads(p.vcard)
-
-                    cont = v.contents
-
                     meta = json.loads(p.vcard)
 
+            elif self.path == '/pim/odd/':
+                # Todo: Blir dette rett da?
+                meta = self.path
+
+            else:
+                # Vcard adress:
+                if key == 'tag':
+                    meta = "VADDRESSBOOK"
+                elif key == 'D:displayname':
+                    meta = 'Odd-Henrik Addressbook'
+                elif key == 'CR:supported-address-data':
+                    #  <C:address-data-type content-type="text/vcard" version="3.0"/>
+                    # https://tools.ietf.org/html/rfc6352#section-5.2
+                    meta = 'text/vcard'
+                elif key is None:
+                    # Todo: is this correct for collection?
+                    recordname = os.path.basename(self.path)
+                    p = Contact.objects.get(path=recordname)
+                    meta = json.loads(p.vcard)
+
+
+            # if key == 'tag':
+            #     if self.path == 'pim/odd/addresses/':
+            #         meta = "VADDRESSBOOK"
+            #     else:
+            #         meta = "VCARD"
+            #
+            # elif key == 'D:displayname':
+            #     meta = 'Odd-Henrik name'
+            # elif key == 'CR:supported-address-data':
+            #     #  <C:address-data-type content-type="text/vcard" version="3.0"/>
+            #     # https://tools.ietf.org/html/rfc6352#section-5.2
+            #     meta = 'text/vcard'
+            # elif key is None:
+            #     if self.path == '/pim/odd/':
+            #         # meta = 'addressbook.vcf' # todo: bør dette kanskje være '/odd/'
+            #         meta = self.path
+            #
+            #     else:
+            #         recordname = os.path.basename(self.path)
+            #         p = Contact.objects.get(path=recordname)
+            #
+            #         meta = json.loads(p.vcard)
+            #         #meta = p.etag
+            #
 
         return meta
         # try:
