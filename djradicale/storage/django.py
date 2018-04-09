@@ -20,6 +20,8 @@ import logging
 import datetime
 from vobject import vCard
 import vobject
+import unicodedata
+
 
 from contextlib import contextmanager
 
@@ -43,11 +45,36 @@ class Collection(BaseCollection):
     def discover(cls, path, depth='0'):
         # for c in DBCollection.objects.filter(parent_path=path or ''):
         #     yield cls(c.path)
-        for c in Contact.objects.filter(collection=path or ''):
-            yield cls(c.path)
+        main_collection_path = 'addresses/'
+        user_collection_path = 'pim/odd/'
 
-        if path == '/pim/odd/':
-            yield cls('/pim/odd/')
+        if depth != '0':
+            for c in Contact.objects.filter(collection=path or ''):
+                yield cls(user_collection_path + main_collection_path + c.path)
+
+            if path == '/pim/':
+                yield cls(user_collection_path + main_collection_path)
+                # return
+
+            elif path == '/pim/.well-known/carddav':
+                yield cls(user_collection_path + main_collection_path)
+
+            elif path == '/odd/':
+                # yield cls('odd/' + main_collection_path)
+                yield cls(main_collection_path)
+            elif path == '/pim/odd/addresses/':
+                for c in Contact.objects.filter(collection=path or ''):
+                    yield cls(path + c.path)
+        else:
+            # yield cls('odd/' + main_collection_path)
+            if path == '/pim/.well-known/carddav':
+                yield cls(user_collection_path + main_collection_path)
+            else:
+                for c in Contact.objects.filter(collection=path or ''):
+                    yield cls(user_collection_path + main_collection_path + c.path)
+
+                yield cls(user_collection_path + main_collection_path)
+
 
     @classmethod
     def create_collection(cls, href, collection=None, props=None):
@@ -58,7 +85,7 @@ class Collection(BaseCollection):
         # #     p, created = DBProperties.objects.filter(path=href)
         # return c
 
-        c, created = Contact.objects.get_or_create(path=href, collection='/odd/')
+        c, created = Contact.objects.get_or_create(path=href, collection='/addresses/')
         return c
 
 
@@ -135,22 +162,47 @@ class Collection(BaseCollection):
                 collection__path=self.path, path=href).delete()
 
     def get_meta(self, key=None):
-        if key == 'tag':
-            meta = "VADDRESSBOOK"
-        elif key == 'D:displayname':
-            meta = 'Odd-Henrik name'
-        elif key == 'CR:supported-address-data':
-            #  <C:address-data-type content-type="text/vcard" version="3.0"/>
-            # https://tools.ietf.org/html/rfc6352#section-5.2
-            meta = 'text/vcard'
-        elif key is None:
-            if self.path == '/pim/odd/':
-                # meta = 'addressbook.vcf' # todo: bør dette kanskje være '/odd/'
-                meta = self.path
+        if self.path == 'odd':
+            meta = '/addressbook'
+        else:
+            if key == 'tag':
+                meta = "VADDRESSBOOK"
+            elif key == 'D:displayname':
+                meta = 'Odd-Henrik name'
+            elif key == 'CR:supported-address-data':
+                #  <C:address-data-type content-type="text/vcard" version="3.0"/>
+                # https://tools.ietf.org/html/rfc6352#section-5.2
+                meta = 'text/vcard'
+            elif key is None:
+                if self.path == '/pim/odd/':
+                    # meta = 'addressbook.vcf' # todo: bør dette kanskje være '/odd/'
+                    meta = self.path
 
-            else:
-                p = Contact.objects.get(path=self.path)
-                meta = json.loads(p.vcard)
+                else:
+                    recordname = os.path.basename(self.path)
+                    p = Contact.objects.get(path=recordname)
+                    v = vobject.readOne(p.vcard)
+                    # meta = 'VCARD'
+                    #
+                    # pattern = "BEGIN:VCARD.*?END:VCARD"
+                    # result = re.findall(pattern, p.vcard, re.DOTALL)
+                    # total = len(result)
+                    #
+                    # for s in result:
+                    #     v = vobject.readOne(s)
+                    #
+                    #     o = {
+                    #         "name": v.fn.value,
+                    #         "vcard": s
+                    #     }
+                    #
+                    #
+                    # #return
+                    # # meta = json.loads(p.vcard)
+
+                    cont = v.contents
+
+                    meta = json.loads(p.vcard)
 
 
         return meta
@@ -176,7 +228,7 @@ class Collection(BaseCollection):
 
     def upload(self, href, vobject_item):
         # vobject_item.fn.value #Display name
-        c, created = Contact.objects.get_or_create(path=href, collection='/odd/', vcard=vobject_item, name=vobject_item.fn.value)
+        c, created = Contact.objects.get_or_create(path=href, collection='/odd/addresses/', vcard=vobject_item, name=vobject_item.fn.value)
         c.save()
         return c
 
