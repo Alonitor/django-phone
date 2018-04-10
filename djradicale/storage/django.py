@@ -37,8 +37,9 @@ logger = logging.getLogger('djradicale')
 
 
 class Collection(BaseCollection):
-    main_collection_path = 'addressbook.vcf'
+    main_collection_path = 'addresses'
     user_collection_path = 'pim/odd/'
+    addressbook_props = '{"tag": "VADDRESSBOOK", "D:displayname": "GDPRAdressBook", "{http://inf-it.com/ns/ab/}addressbook-color": "#730bd5ff", "CR:addressbook-description": "GDPR Test AdressBook"}'
 
     def __init__(self, path, **kwargs):
         self.path = path # This is uuid
@@ -62,14 +63,14 @@ class Collection(BaseCollection):
 
             elif path == '/pim/.well-known/carddav':
                 # yield cls(cls.user_collection_path + cls.main_collection_path)
-                yield cls('odd')
+                yield cls('addresses')
 
             elif path == '/odd/':
                 # yield cls('odd/' + main_collection_path)
                 # yield cls(cls.user_collection_path + cls.main_collection_path)
                 # yield cls(cls.main_collection_path)
                 # yield cls(cls.user_collection_path + cls.main_collection_path)
-                yield cls('odd')
+                yield cls('addresses')
             elif path == '/pim/odd/addressbook.vcf':
                 # this_collection = os.path.basename(os.path.normpath(path))
                 for c in Contact.objects.filter(collection=path + '/' or ''):
@@ -81,7 +82,7 @@ class Collection(BaseCollection):
             #     # yield cls(cls.user_collection_path + cls.main_collection_path)
             # if path == '/pim/odd/addressbook.vcf/':
             yield cls('pim/odd')
-            yield cls('pim/odd/addressbook.vcf')
+            yield cls('pim/odd/addresses')
             # else:
                 # yield cls('/odd/')
             for c in Contact.objects.filter(collection=path or ''):
@@ -198,115 +199,144 @@ class Collection(BaseCollection):
                 collection__path=self.path, path=href).delete()
 
     def get_meta(self, key=None):
-        if self.path == '/pim/odd/':
-            # meta = 'addressbook.vcf'
-            meta = '/odd/'
-            #meta = json.loads('addressbook.vcf')
+        if self.path == 'pim/odd':
+            return
+
+        elif self.path == 'pim/odd/addresses':
+            meta = json.loads(self.addressbook_props)
+            if key is None:
+                return meta
+            else:
+                return meta.get(key)
 
         else:
-            if self.path == '/pim/odd/addressbook.vcf/':
-                if key == 'tag':
-                    meta = "VADDRESSBOOK"
-                elif key == 'D:displayname':
-                    meta = 'Odd-Henrik Addressbook'
-                elif key == 'CR:supported-address-data':
-                    #  <C:address-data-type content-type="text/vcard" version="3.0"/>
-                    # https://tools.ietf.org/html/rfc6352#section-5.2
-                    meta = 'text/vcard' # TODO: Hmm dette eller text/vcard??
-                elif key is None:
-                    # Todo: is this correct for collection?
-                    recordname = os.path.basename(self.path)
-                    p = Contact.objects.get(path=recordname)
-                    meta = json.loads(p.vcard)
+            path = os.path.basename(self.path)
 
-            elif self.path == '/pim/odd/':
-                # Todo: Blir dette rett da?
-                meta = self.path
-
-            else:
-                path = os.path.basename(self.path)
-                #collection = os.path.dirname(self.path) + '/'
-
-
-                # try:
-                #     p = DBProperties.objects.get(path=self.path)
-                #     meta = json.loads(p.text)
-                #     if key is None:
-                #         return meta
-                #     else:
-                #         return meta.get(key)
-                # except DBProperties.DoesNotExist:
-                #     pass
-
-                try:
-                    item = Contact.objects.get(path=path)
-                    meta = json.loads(item.vcard)
-                    if key is None:
-                        return meta
-                    else:
-                        if key == 'tag':
-                            return "VADDRESSBOOK"
-                        elif key == 'D:displayname':
-                            meta = item.name
-                        elif key == 'CR:supported-address-data':
+            try:
+                item = Contact.objects.get(path=path)
+                meta = json.loads(item.vcard)
+                if key is None:
+                    return meta
+                else:
+                    if key == 'tag':
+                        return "VADDRESSBOOK"
+                    elif key == 'D:displayname':
+                        meta = item.name
+                    elif key == 'CR:supported-address-data':
                         #  <C:address-data-type content-type="text/vcard" version="3.0"/>
                         # https://tools.ietf.org/html/rfc6352#section-5.2
-                            meta = 'text/vcard'  # TODO: Hmm dette eller text/vcard??
-                except Contact.DoesNotExist:
-                    pass
-
-                # # Vcard adress:
-                # if key == 'tag':
-                #     meta = "VADDRESSBOOK"
-                # elif key == 'D:displayname':
-                #     meta = 'Odd-Henrik Addressbook'
-                # elif key == 'CR:supported-address-data':
-                #     #  <C:address-data-type content-type="text/vcard" version="3.0"/>
-                #     # https://tools.ietf.org/html/rfc6352#section-5.2
-                #     meta = 'text/vcard'
-                # elif key is None:
-                #     # Todo: is this correct for collection?
-                #     recordname = os.path.basename(self.path)
-                #     p = Contact.objects.get(path=recordname)
-                #     meta = json.loads(p.vcard)
-
-
-
-            # if key == 'tag':
-            #     if self.path == 'pim/odd/addresses/':
-            #         meta = "VADDRESSBOOK"
-            #     else:
-            #         meta = "VCARD"
-            #
-            # elif key == 'D:displayname':
-            #     meta = 'Odd-Henrik name'
-            # elif key == 'CR:supported-address-data':
-            #     #  <C:address-data-type content-type="text/vcard" version="3.0"/>
-            #     # https://tools.ietf.org/html/rfc6352#section-5.2
-            #     meta = 'text/vcard'
-            # elif key is None:
-            #     if self.path == '/pim/odd/':
-            #         # meta = 'addressbook.vcf' # todo: bør dette kanskje være '/odd/'
-            #         meta = self.path
-            #
-            #     else:
-            #         recordname = os.path.basename(self.path)
-            #         p = Contact.objects.get(path=recordname)
-            #
-            #         meta = json.loads(p.vcard)
-            #         #meta = p.etag
-            #
+                        meta = 'text/vcard'  # TODO: Hmm dette eller text/vcard??
+            except Contact.DoesNotExist:
+                pass
 
         return meta
-        # try:
-        #     p = DBProperties.objects.get(path=self.path)
-        #     meta = json.loads(p.text)
-        #     if key is None:
-        #         return meta
+
+        #
+        #
+        #     # else:
+        # #     if self.path == '/pim/odd/addressbook.vcf/':
+        # #         if key == 'tag':
+        # #             meta = "VADDRESSBOOK"
+        # #         elif key == 'D:displayname':
+        # #             meta = 'Odd-Henrik Addressbook'
+        # #         elif key == 'CR:supported-address-data':
+        # #             #  <C:address-data-type content-type="text/vcard" version="3.0"/>
+        # #             # https://tools.ietf.org/html/rfc6352#section-5.2
+        # #             meta = 'text/vcard' # TODO: Hmm dette eller text/vcard??
+        # #         elif key is None:
+        # #             # Todo: is this correct for collection?
+        # #             recordname = os.path.basename(self.path)
+        # #             p = Contact.objects.get(path=recordname)
+        # #             meta = json.loads(p.vcard)
+        # #
+        # #     elif self.path == '/pim/odd/':
+        # #         # Todo: Blir dette rett da?
+        # #         meta = self.path
+        #
         #     else:
-        #         return meta.get(key)
-        # except DBProperties.DoesNotExist:
-        #     pass
+        #         path = os.path.basename(self.path)
+        #         #collection = os.path.dirname(self.path) + '/'
+        #
+        #
+        #         # try:
+        #         #     p = DBProperties.objects.get(path=self.path)
+        #         #     meta = json.loads(p.text)
+        #         #     if key is None:
+        #         #         return meta
+        #         #     else:
+        #         #         return meta.get(key)
+        #         # except DBProperties.DoesNotExist:
+        #         #     pass
+        #
+        #         try:
+        #             item = Contact.objects.get(path=path)
+        #             meta = json.loads(item.vcard)
+        #             if key is None:
+        #                 return meta
+        #             else:
+        #                 if key == 'tag':
+        #                     return "VADDRESSBOOK"
+        #                 elif key == 'D:displayname':
+        #                     meta = item.name
+        #                 elif key == 'CR:supported-address-data':
+        #                 #  <C:address-data-type content-type="text/vcard" version="3.0"/>
+        #                 # https://tools.ietf.org/html/rfc6352#section-5.2
+        #                     meta = 'text/vcard'  # TODO: Hmm dette eller text/vcard??
+        #         except Contact.DoesNotExist:
+        #             pass
+        #
+        #         # # Vcard adress:
+        #         # if key == 'tag':
+        #         #     meta = "VADDRESSBOOK"
+        #         # elif key == 'D:displayname':
+        #         #     meta = 'Odd-Henrik Addressbook'
+        #         # elif key == 'CR:supported-address-data':
+        #         #     #  <C:address-data-type content-type="text/vcard" version="3.0"/>
+        #         #     # https://tools.ietf.org/html/rfc6352#section-5.2
+        #         #     meta = 'text/vcard'
+        #         # elif key is None:
+        #         #     # Todo: is this correct for collection?
+        #         #     recordname = os.path.basename(self.path)
+        #         #     p = Contact.objects.get(path=recordname)
+        #         #     meta = json.loads(p.vcard)
+        #
+        #
+        #
+        #     # if key == 'tag':
+        #     #     if self.path == 'pim/odd/addresses/':
+        #     #         meta = "VADDRESSBOOK"
+        #     #     else:
+        #     #         meta = "VCARD"
+        #     #
+        #     # elif key == 'D:displayname':
+        #     #     meta = 'Odd-Henrik name'
+        #     # elif key == 'CR:supported-address-data':
+        #     #     #  <C:address-data-type content-type="text/vcard" version="3.0"/>
+        #     #     # https://tools.ietf.org/html/rfc6352#section-5.2
+        #     #     meta = 'text/vcard'
+        #     # elif key is None:
+        #     #     if self.path == '/pim/odd/':
+        #     #         # meta = 'addressbook.vcf' # todo: bør dette kanskje være '/odd/'
+        #     #         meta = self.path
+        #     #
+        #     #     else:
+        #     #         recordname = os.path.basename(self.path)
+        #     #         p = Contact.objects.get(path=recordname)
+        #     #
+        #     #         meta = json.loads(p.vcard)
+        #     #         #meta = p.etag
+        #     #
+        #
+        # return meta
+        # # try:
+        # #     p = DBProperties.objects.get(path=self.path)
+        # #     meta = json.loads(p.text)
+        # #     if key is None:
+        # #         return meta
+        # #     else:
+        # #         return meta.get(key)
+        # # except DBProperties.DoesNotExist:
+        # #     pass
 
     def set_meta(self, props):
 
@@ -320,7 +350,7 @@ class Collection(BaseCollection):
 
     def upload(self, href, vobject_item):
         # vobject_item.fn.value #Display name
-        c, created = Contact.objects.get_or_create(path=href, collection='addressbook.vcf', vcard=vobject_item, name=vobject_item.fn.value)
+        c, created = Contact.objects.get_or_create(path=href, collection='addresses', vcard=vobject_item, name=vobject_item.fn.value)
         c.save()
         return c
 
