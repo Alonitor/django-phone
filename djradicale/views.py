@@ -95,7 +95,12 @@ class WellKnownView(DjRadicaleView):
                         auth[1]).decode().split(':')
                     if kwargs.get('type') == 'carddav':
                         # url = '%s/addressbook.vcf/' % user
-                        url = '%s/addresses/' % user
+
+                        url = '%s/' % user
+                        # url = '/addresses/'
+
+                        # url = '%s/addresses/' % user
+                        #url = '/pim/%s/addresses/' % user
                     else:
                         url = '%s/calendar.ics/' % user
                     request.META['PATH_INFO'] = reverse(

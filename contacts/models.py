@@ -17,9 +17,13 @@ class Contact(models.Model):
     path = models.TextField(blank=True)
     collection = models.TextField('Collection', default='/pim/odd/addresses/')
     etag = models.TextField(blank=True)
+    # uid = models.UUIDField()
 
     def __str__(self):
         return 'Contact: ' + self.name
+
+    def uid(self):
+        return os.path.splitext(self.path)[0]
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         j = vobject.vCard()

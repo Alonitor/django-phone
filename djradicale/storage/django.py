@@ -53,42 +53,74 @@ class Collection(BaseCollection):
         #user_collection_path = 'pim/odd/'
 
         if depth != '0':
-            for c in Contact.objects.filter(collection=path or ''):
-                yield cls(cls.user_collection_path + cls.main_collection_path + c.path)
+            if path == '/odd/':
+                yield cls('pim/odd')
+                yield cls('pim/odd/addresses')
 
-            if path == '/pim/':
-                # yield cls(cls.user_collection_path + cls.main_collection_path)
-                yield cls('odd')
-                # return
+                # newpath = path[1:]
+                # for c in Contact.objects.filter(collection=newpath or ''):
+                #     yield cls(c.collection + c.path)
 
-            elif path == '/pim/.well-known/carddav':
-                # yield cls(cls.user_collection_path + cls.main_collection_path)
-                yield cls('addresses')
+            elif path == '/pim/odd/addresses/':
+                yield cls('pim/odd/addresses')
 
-            elif path == '/odd/':
-                # yield cls('odd/' + main_collection_path)
-                # yield cls(cls.user_collection_path + cls.main_collection_path)
-                # yield cls(cls.main_collection_path)
-                # yield cls(cls.user_collection_path + cls.main_collection_path)
-                yield cls('addresses')
-            elif path == '/pim/odd/addressbook.vcf':
-                # this_collection = os.path.basename(os.path.normpath(path))
-                for c in Contact.objects.filter(collection=path + '/' or ''):
-                    #yield cls(path + c.path)
-                    yield cls(c.path)
+                newpath = path[1:]
+                for c in Contact.objects.filter(collection=os.path.dirname(newpath) or ''):
+                    yield cls(c.collection + c.path)
         else:
-            # # yield cls('odd/' + main_collection_path)
-            # # if path == '/pim/.well-known/carddav':
-            #     # yield cls(cls.user_collection_path + cls.main_collection_path)
-            # if path == '/pim/odd/addressbook.vcf/':
-            yield cls('pim/odd')
-            yield cls('pim/odd/addresses')
-            # else:
-                # yield cls('/odd/')
-            for c in Contact.objects.filter(collection=path or ''):
-                yield cls(c.collection + c.path)
+            if path == '/pim/odd/':
+            # yield cls('pim/odd/')
+                yield cls('pim/odd/')
+                yield cls('pim/odd/addresses/')
+            else:
+                newpath = path[1:]
+                for c in Contact.objects.filter(collection=newpath or ''):
+                    yield cls(c.collection + c.path)
 
-                # yield cls(cls.user_collection_path + cls.main_collection_path)
+        # else:
+        #     newpath = path[1:]
+        #     for c in Contact.objects.filter(collection=newpath or ''):
+        #         yield cls(c.collection + c.path)
+
+
+
+        #     if path == '/pim/':
+        #         # yield cls(cls.user_collection_path + cls.main_collection_path)
+        #         yield cls('pim/odd/')
+        #         # return
+        #
+        #     elif path == '/pim/.well-known/carddav':
+        #         # yield cls(cls.user_collection_path + cls.main_collection_path)
+        #         yield cls('pim/odd/addresses/')
+        #
+        #     elif path == '/odd/':
+        #         # yield cls('odd/' + main_collection_path)
+        #         # yield cls(cls.user_collection_path + cls.main_collection_path)
+        #         # yield cls(cls.main_collection_path)
+        #         # yield cls(cls.user_collection_path + cls.main_collection_path)
+        #         yield cls('pim/odd/')
+        #         yield cls('pim/odd/addresses/')
+        #     # elif path == '/pim/odd/addresses/':
+        #     #     # this_collection = os.path.basename(os.path.normpath(path))
+        #     #     for c in Contact.objects.filter(collection=path + '/' or ''):
+        #     #         #yield cls(path + c.path)
+        #     #         yield cls(c.path)
+        #     elif '/pim/odd/':
+        #         yield cls('pim/odd/addresses/')
+        # else:
+        #     # # yield cls('odd/' + main_collection_path)
+        #     # # if path == '/pim/.well-known/carddav':
+        #     #     # yield cls(cls.user_collection_path + cls.main_collection_path)
+        #     # if path == '/pim/odd/addressbook.vcf/':
+        #
+        #     yield cls('pim/odd')
+        #     yield cls('pim/odd/addresses')
+        #     # else:
+        #         # yield cls('/odd/')
+        #     for c in Contact.objects.filter(collection=path or ''):
+        #         yield cls(c.collection + c.path)
+        #
+        #         # yield cls(cls.user_collection_path + cls.main_collection_path)
 
 
     @classmethod
@@ -116,7 +148,8 @@ class Collection(BaseCollection):
 
         # this_collection = os.path.basename(os.path.normpath(self.path))
         # items = Contact.objects.filter(collection=self.path)
-        items = Contact.objects.filter(path=self.path)
+        collectionpath = os.path.dirname(self.path) + '/'
+        items = Contact.objects.filter(collection=self.path)
         for i in items:
             # yield i.collection + i.path
             yield i.path
@@ -148,10 +181,28 @@ class Collection(BaseCollection):
             # return Item(self, href=item.path, last_modified=self.last_modified, text=item.name, item=item.vcard, name="VCARD")
             #return Item(self, href=item.path, last_modified=self.last_modified, text=item.name, item=item.vcard,name="VCARD")
 
+
             item_path = os.path.basename(self.path)
             #collection =
+            newpath = os.path.basename(self.path)
             item = (Contact.objects.filter(collection=self.path).get(path=href))
-            return Item(self, href=item.path, last_modified=self.last_modified, text=item.name, item=item.vcard, name="VCARD")
+
+            #return Item(self, href=item.path, last_modified=self.last_modified, text=item.name, item=item.vcard, name="VCARD")
+            # return Item(self, href=item.path, last_modified=self.last_modified, text=item.name, item=item.vcard, name=item.name)
+
+            return Item(
+                self,
+                # item=json.loads(item.vcard),
+                item=item.vcard,
+                href=item.collection + item.path,
+                last_modified=self.last_modified,
+                text=item.vcard,
+                etag=item.etag,
+                uid=item.uid(),
+                # name="VCARD",
+                name=item.name,
+                component_name=None)
+
 
 
         except Contact.DoesNotExist:
@@ -200,36 +251,45 @@ class Collection(BaseCollection):
 
     def get_meta(self, key=None):
         if self.path == 'pim/odd':
-            return
-
-        elif self.path == 'pim/odd/addresses':
-            meta = json.loads(self.addressbook_props)
-            if key is None:
-                return meta
-            else:
-                return meta.get(key)
+            # meta = 'odd'
+            # meta = json.loads(self.addressbook_props)
+            # meta = 'current-user-principal'
+            # meta = 'VADDRESSBOOK'
+            pass
 
         else:
-            path = os.path.basename(self.path)
-
-            try:
-                item = Contact.objects.get(path=path)
-                meta = json.loads(item.vcard)
+            if self.path == 'pim/odd/addresses':
+                meta = json.loads(self.addressbook_props)
                 if key is None:
                     return meta
                 else:
-                    if key == 'tag':
-                        return "VADDRESSBOOK"
-                    elif key == 'D:displayname':
-                        meta = item.name
-                    elif key == 'CR:supported-address-data':
-                        #  <C:address-data-type content-type="text/vcard" version="3.0"/>
-                        # https://tools.ietf.org/html/rfc6352#section-5.2
-                        meta = 'text/vcard'  # TODO: Hmm dette eller text/vcard??
-            except Contact.DoesNotExist:
-                pass
+                    if key == 'CR:supported-address-data':
+                        return 'text/xml'
+                    else:
+                        return meta.get(key)
 
-        return meta
+            else:
+                path = os.path.basename(self.path)
+
+                try:
+                    item = Contact.objects.get(path='/' + path)
+                    meta = json.loads(item.vcard)
+                    if key is None:
+                        return meta
+                    else:
+                        if key == 'tag':
+                            return "VADDRESSBOOK"
+                        elif key == 'D:displayname':
+                            meta = item.name
+                            # meta = 'VCARD'
+                        elif key == 'CR:supported-address-data':
+                            #  <C:address-data-type content-type="text/vcard" version="3.0"/>
+                            # https://tools.ietf.org/html/rfc6352#section-5.2
+                            meta = 'text/vcard'  # TODO: Hmm dette eller text/vcard??
+                except Contact.DoesNotExist:
+                    pass
+
+                return meta
 
         #
         #
