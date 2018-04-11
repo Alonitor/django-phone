@@ -190,19 +190,32 @@ class Collection(BaseCollection):
             #return Item(self, href=item.path, last_modified=self.last_modified, text=item.name, item=item.vcard, name="VCARD")
             # return Item(self, href=item.path, last_modified=self.last_modified, text=item.name, item=item.vcard, name=item.name)
 
+            # return Item(
+            #     self,
+            #     item=json.loads(item.vcard),
+            #     href=item.collection + item.path,
+            #     last_modified=self.last_modified,
+            #     text=item.vcard,
+            #     etag=item.etag,
+            #     uid=item.uid(),
+            #     # name="VCARD",
+            #     name=item.name,
+            #     component_name=None)
+
+            j_vcard = json.loads(item.vcard)
+            vo_vcard = vobject.readOne(j_vcard)
+
             return Item(
                 self,
-                # item=json.loads(item.vcard),
-                item=item.vcard,
-                href=item.collection + item.path,
+                item=j_vcard,
+                href=item.path,
                 last_modified=self.last_modified,
-                text=item.vcard,
+                text=str(vo_vcard),
                 etag=item.etag,
-                uid=item.uid(),
-                # name="VCARD",
-                name=item.name,
+                uid=item.uuid,
+                name="VCARD",
+                # name=item.name,
                 component_name=None)
-
 
 
         except Contact.DoesNotExist:
@@ -278,10 +291,10 @@ class Collection(BaseCollection):
                         return meta
                     else:
                         if key == 'tag':
-                            return "VADDRESSBOOK"
+                            return "VADDRESSBOOK" # VCARD
                         elif key == 'D:displayname':
-                            meta = item.name
-                            # meta = 'VCARD'
+                            # meta = item.name
+                            meta = 'VCARD'
                         elif key == 'CR:supported-address-data':
                             #  <C:address-data-type content-type="text/vcard" version="3.0"/>
                             # https://tools.ietf.org/html/rfc6352#section-5.2

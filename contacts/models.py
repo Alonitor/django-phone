@@ -15,9 +15,9 @@ class Contact(models.Model):
     # path = models.TextField('Path', unique=True)
     #path = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=True)
     path = models.TextField(blank=True)
-    collection = models.TextField('Collection', default='/pim/odd/addresses/')
+    collection = models.TextField('Collection', default='pim/odd/addresses')
     etag = models.TextField(blank=True)
-    # uid = models.UUIDField()
+    uuid = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=False)
 
     def __str__(self):
         return 'Contact: ' + self.name
@@ -32,7 +32,7 @@ class Contact(models.Model):
         j.add('fn')
         j.fn.value = self.name
         j.add('uid')
-        j.uid.value = os.path.splitext(self.path)[0]
+        j.uid.value = str(self.uuid) + '@securegdpr.eu'
         j.add('rev')
         j.rev.value = datetime.datetime.strftime(datetime.datetime.now(), '%a, %d %b %Y %H:%M:%S %z')
 
@@ -40,7 +40,7 @@ class Contact(models.Model):
         # self.vcard = j.serialize()
         self.vcard = vcard_json
 
-        self.path = random_uuid4() + '.vcf'
+        self.path = '/' + random_uuid4() + '.vcf'
         self.etag = random_uuid4()
 
         super().save()
