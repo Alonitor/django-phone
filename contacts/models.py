@@ -15,7 +15,7 @@ class Contact(models.Model):
     # path = models.TextField('Path', unique=True)
     #path = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=True)
     path = models.TextField(blank=True)
-    collection = models.TextField('Collection', default='pim/odd/addresses')
+    collection = models.TextField('Collection', default='/pim/odd/addresses/')
     etag = models.TextField(blank=True)
     uuid = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=False)
 
@@ -40,7 +40,7 @@ class Contact(models.Model):
         # self.vcard = j.serialize()
         self.vcard = vcard_json
 
-        self.path = '/' + random_uuid4() + '.vcf'
+        self.path = random_uuid4() + '.vcf'
         self.etag = random_uuid4()
 
         super().save()

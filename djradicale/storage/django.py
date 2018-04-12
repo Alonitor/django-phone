@@ -66,15 +66,16 @@ class Collection(BaseCollection):
                     vo_vcard = vobject.readOne(j_vcard)
 
                     item = Item(cls,
+                               # collection='/pim/odd/addresses/',
                                item=vo_vcard,
-                               href=c.collection + c.path,
+                               href=c.path,
                                last_modified=cls.last_modified,
                                # text=str(vo_vcard),
                                etag=c.etag,
                                uid=c.uuid,
                                name="VCARD",
                                # name=item.name,
-                               component_name=None)
+                               component_name='component')
                     yield item
 
         else:
@@ -86,15 +87,16 @@ class Collection(BaseCollection):
                     vo_vcard = vobject.readOne(j_vcard)
 
                     yield cls(Item(cls,
+                               # collection='/pim/odd/addresses/',
                                item=vo_vcard,
-                               href=c.collection + c.path,
+                               href=c.path,
                                last_modified=cls.last_modified,
                                # text=str(vo_vcard),
                                etag=c.etag,
                                uid=c.uuid,
                                name="VCARD",
                                # name=item.name,
-                               component_name=None))
+                               component_name='component'))
 
 
     @classmethod
@@ -128,7 +130,7 @@ class Collection(BaseCollection):
         items = Contact.objects.filter(collection=collectionpath)
         for i in items:
             # yield i.collection + i.path
-            yield i.collection + i.path
+            yield i.path
             # yield self.user_collection_path + i.collection + '/' + i.path
 
 
@@ -136,18 +138,22 @@ class Collection(BaseCollection):
         try:
             # if type(self.path) is str:
             item = os.path.basename(href)
-            collection = os.path.dirname(href) + '/'
+            # collection = os.path.dirname(href) + '/'
+
+
             # else:
             #     item = href
             #     collection = os.path.dirname(self.path.href) + '/'
 
-            item = (Contact.objects.filter(collection=collection).get(path=item))
+            # item = (Contact.objects.filter(collection=collection).get(path=item))
+            item = (Contact.objects.get(path=href))
             j_vcard = json.loads(item.vcard)
             vo_vcard = vCard()
             vo_vcard = vobject.readOne(j_vcard)
 
             return Item(
                 self,
+                # collection='/pim/odd/addresses/',
                 item=vo_vcard,
                 href=item.collection + item.path,
                 last_modified=self.last_modified,
@@ -156,7 +162,8 @@ class Collection(BaseCollection):
                 uid=item.uuid,
                 name="VCARD",
                 # name=item.name,
-                component_name=None)
+                #component_name='component'
+            )
 
         except Contact.DoesNotExist:
             pass
@@ -176,28 +183,55 @@ class Collection(BaseCollection):
         #     yield item.path, Item(self, href=item.path,
         #                           last_modified=self.last_modified)
 
-
-        files = None
-        for href in hrefs:
-            # if files is None:
-            #     # List dir after hrefs returned one item, the iterator may be
-            #     # empty and the for-loop is never executed.
-            path = self.path + href
-            self.logger.debug(
-                "Can't translate: %r", href)
-            yield (href, None)
-            #yield (href, self.get(href, verify_href=False))
-
-
-            myhref = href
+        #yield ((href, self.get(href)) for href in hrefs)
 
         collectionpath = os.path.dirname(self.path.href) + '/'
-        itemname = os.path.basename(self.path.href)
 
-        items = (Contact.objects.filter(collection=collectionpath).filter(path_in=hrefs))
+        items = Contact.objects.filter(collection=collectionpath)
+        for i in items:
+            j_vcard = json.loads(i.vcard)
+            vo_vcard = vCard()
+            vo_vcard = vobject.readOne(j_vcard)
+            itempath = i.collection + i.path
 
-        for item in items:
-            yield item.path, Item(self, href=item.path, last_modified=self.last_modified, name="VCARD", etag=item.etag, text=item.vcard, vobject=item.vcard)
+            return itempath, Item(
+                self,
+                # collection='/pim/odd/addresses/',
+                item=vo_vcard,
+                href=itempath,
+                last_modified=self.last_modified,
+                # text=str(vo_vcard),
+                #etag=i.etag,
+                #uid=i.uuid,
+                #name="VCARD",
+                # name=i.name,
+                #component_name=None
+            )
+
+
+
+
+        # files = None
+        # for href in hrefs:
+        #     # if files is None:
+        #     #     # List dir after hrefs returned one item, the iterator may be
+        #     #     # empty and the for-loop is never executed.
+        #     path = self.path + href
+        #     self.logger.debug(
+        #         "Can't translate: %r", href)
+        #     yield (href, None)
+        #     #yield (href, self.get(href, verify_href=False))
+        #
+        #
+        #     myhref = href
+        #
+        # collectionpath = os.path.dirname(self.path.href) + '/'
+        # itemname = os.path.basename(self.path.href)
+        #
+        # items = (Contact.objects.filter(collection=collectionpath).filter(path_in=hrefs))
+
+        # for item in items:
+        #     yield item.path, Item(self, href=item.path, last_modified=self.last_modified, name="VCARD", etag=item.etag, text=item.vcard, vobject=item.vcard)
 
     def has(self, href):
         # return (
