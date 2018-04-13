@@ -96,10 +96,10 @@ class WellKnownView(DjRadicaleView):
                     if kwargs.get('type') == 'carddav':
                         # url = '%s/addressbook.vcf/' % user
 
-                        url = '%s/' % user
+                        # url = '%s/' % user
                         # url = '/addresses/'
 
-                        # url = '%s/addresses/' % user
+                        url = '%s/addressbook.vcf' % user
                         #url = '/pim/%s/addresses/' % user
                     else:
                         url = '%s/calendar.ics/' % user
