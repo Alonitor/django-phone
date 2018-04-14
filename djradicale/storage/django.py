@@ -42,7 +42,6 @@ logger = logging.getLogger('djradicale')
 
 
 class Collection(BaseCollection):
-    tmpprops = '{"tag": "VADDRESSBOOK", "D:displayname": "GDPRAdressBook", "{http://inf-it.com/ns/ab/}addressbook-color": "#730bd5ff", "CR:addressbook-description": "GDPR Test AdressBook"}'
 
     def __init__(self, path, **kwargs):
         self.path = path # This is uuid
@@ -53,35 +52,32 @@ class Collection(BaseCollection):
         # for c in DBCollection.objects.filter(parent_path=path or ''):
         #     yield cls(c.path)
 
+
+
         principalCollection = Collection('pim/odd')
-        principalCollection.is_principal = True
+        # principalCollection.is_principal = True
 
-        MyCollection = Collection('pim/odd/addressbook.vcf')
-        MyCollection.owner = 'pim/odd'
-        MyCollection.is_principal = False
-
-
-
-
-
+        MyCollection = Collection('pim/odd/addressbook')
+        # MyCollection.owner = 'pim/odd'
+        # MyCollection.is_principal = False
 
         if depth != '0':
             if path == '/pim/odd/':
-                # yield MyCollection
-                yield cls('pim/odd/addressbook.vcf')
+                yield MyCollection
+                #yield cls('pim/odd/addressbook.vcf')
                 return
 
             if path == '/odd/':
-                # yield principalCollection
-                yield cls('pim/odd')
+                yield principalCollection
+                #yield cls('pim/odd')
                 return
 
-            if path == '/pim/odd/addressbook.vcf/':
-                # yield principalCollection
-                # yield MyCollection
+            if path == '/pim/odd/addressbook/':
+                yield principalCollection
+                yield MyCollection
 
                 # yield cls('pim/odd')
-                yield cls('pim/odd/addressbook.vcf')
+                #yield cls('pim/odd/addressbook.vcf')
 
                 for c in Contact.objects.filter(collection='addressbook.vcf' or ''):  # os.path.dirname(path)[1:]
                     # yield cls(c.collection + '/' + c.path)
@@ -89,7 +85,7 @@ class Collection(BaseCollection):
                     vo_vcard = vCard()
                     vo_vcard = vobject.readOne(j_vcard)
 
-                    yield  Item(cls,
+                    yield Item(MyCollection,
                                   # collection=MyCollection,
                                   item=vo_vcard,
                                   href=c.path,
@@ -109,6 +105,8 @@ class Collection(BaseCollection):
             return
 
     def get_meta(self, key=None):
+        tmpprops = '{"tag": "VADDRESSBOOK", "D:displayname": "GDPRAdressBook", "{http://inf-it.com/ns/ab/}addressbook-color": "#730bd5ff", "CR:addressbook-description": "GDPR Test AdressBook"}'
+
         meta = {}
 
         if self.path == 'pim/odd':
@@ -124,7 +122,7 @@ class Collection(BaseCollection):
 
 
         else:
-            meta = json.loads(self.tmpprops)
+            meta = json.loads(tmpprops)
             if key is None:
                 return meta
             else:
