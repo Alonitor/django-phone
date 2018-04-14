@@ -99,7 +99,7 @@ class WellKnownView(DjRadicaleView):
                         # url = '%s/' % user
                         # url = '/addresses/'
 
-                        url = '%s/addressbook.vcf' % user
+                        url = '%s/addressbook.vcf/' % user
                         #url = '/pim/%s/addresses/' % user
                     else:
                         url = '%s/calendar.ics/' % user
