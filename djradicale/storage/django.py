@@ -91,6 +91,16 @@ class Collection(BaseCollection):
 
                     yield thisItem
 
+            else:
+                this_collection = os.path.dirname(path)
+                this_item = os.path.basename(path)
+
+                yield cls.get(cls, this_item)
+
+                # for c in Contact.objects.filter(collection=this_collection).get(paht=this_item):
+                #     cls.get()
+                #
+
     def get_meta(self, key=None):
         tmpprops = '{"tag": "VADDRESSBOOK", "D:displayname": "GDPRAdressBook", "{http://inf-it.com/ns/ab/}addressbook-color": "#730bd5ff", "CR:addressbook-description": "GDPR Test AdressBook"}'
         meta = {}
@@ -140,7 +150,7 @@ class Collection(BaseCollection):
 
     def get(self, href):
         c = Contact.objects.get(path=href)
-        this_item =  Item(self,
+        this_item = Item(self,
                                   # collection=MyCollection,
                                   item=json.loads(c.vcard),
                                   href=c.path,
@@ -203,13 +213,17 @@ class Collection(BaseCollection):
 
 
     def delete(self, href=None):
-        # TODO: Implement and test this
         # if href is None:
         #     # DBItem.objects.filter(collection__path=self.path).delete()
         #     # DBCollection.objects.filter(path=self.path).delete()
         #     # DBProperties.objects.filter(path=self.path).delete()
         # else:
-        DBItem.objects.filter(collection__path=self.path, path=href).delete()
+        # DBItem.objects.filter(collection__path=self.path, path=href).delete()
+
+        # TODO: There are probably more cases that needs to be handled here.
+        if href is None and not hasattr(self, 'path'):
+            Contact.objects.filter(path=self).delete()
+
 
     def set_meta(self, props):
         # TODO: Test and implement this
