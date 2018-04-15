@@ -24,18 +24,11 @@ from vobject import vCard
 import vobject
 import unicodedata
 from radicale.storage import random_uuid4
-
-
 from contextlib import contextmanager
-
 from django.db import transaction
-
 from radicale.storage import BaseCollection, Item
-
 from ..models import DBCollection, DBItem, DBProperties
-
 from contacts.models import Contact
-
 from hashlib import md5
 
 logger = logging.getLogger('djradicale')
@@ -45,8 +38,6 @@ class Collection(BaseCollection):
 
     def __init__(self, path, **kwargs):
         self.path = path # This is uuid
-
-        # self.path = '/odd/'
 
     @classmethod
     def discover(cls, path, depth="0"):
@@ -102,20 +93,15 @@ class Collection(BaseCollection):
 
     def get_meta(self, key=None):
         tmpprops = '{"tag": "VADDRESSBOOK", "D:displayname": "GDPRAdressBook", "{http://inf-it.com/ns/ab/}addressbook-color": "#730bd5ff", "CR:addressbook-description": "GDPR Test AdressBook"}'
-
         meta = {}
 
         if self.path == 'odd':
             if key is None:
                 pass
-
             elif key == 'CR:supported-address-data':
                     return '"text/vcard" version="3.0"'  # 'text/xml' vcard
-
             else:
                 pass
-                #return 'VADDRESSBOOK'
-
 
         else:
             meta = json.loads(tmpprops)
@@ -145,27 +131,12 @@ class Collection(BaseCollection):
         # for i in items:
         #     yield i.path
         #try:
-        #print('test')
-
 
         items = Contact.objects.filter(collection=self.path)
         for i in items:
             yield i.path
         #except Contact.DoesNotExist:
         return
-
-    # @property
-    # def etag(self):
-    #     """Encoded as quoted-string (see RFC 2616)."""
-    #     # etag = md5()
-    #     # for item in self.get_all():
-    #     #     etag.update((item.href + "/" + item.etag).encode("utf-8"))
-    #     # etag.update(json.dumps(self.get_meta(), sort_keys=True).encode())
-    #     # return '"%s"' % etag.hexdigest()
-    #     #
-    #
-    #     etag = md5()
-    #     return etag
 
     def get(self, href):
         c = Contact.objects.get(path=href)
@@ -184,40 +155,6 @@ class Collection(BaseCollection):
 
         return this_item
 
-    #         #try:
-#         # if type(self.path) is str:
-#         item = os.path.basename(href)
-#         # collection = os.path.dirname(href) + '/'
-#
-#
-#         # else:
-#         #     item = href
-#         #     collection = os.path.dirname(self.path.href) + '/'
-#
-#         # item = (Contact.objects.filter(collection=collection).get(path=item))
-#         c = (Contact.objects.get(path=href))
-#         j_vcard = json.loads(c.vcard)
-#         vo_vcard = vCard()
-#         vo_vcard = vobject.readOne(j_vcard)
-#
-#         yield Item(
-#             self,
-#             # collection='/pim/odd/addresses/',
-#             item=vo_vcard,
-#             href=c.collection + c.path,
-#             last_modified=self.last_modified,
-#             # text=str(vo_vcard),
-#             etag=c.etag,
-#             uid=c.uuid,
-#             # name="VCARD",
-#             name=c.name,
-#             #component_name='component'
-#         )
-#
-# #        except Contact.DoesNotExist:
-# #            pass
-
-
     def get_multi(self, hrefs):
         items = self.get_multi2(hrefs)
         if items:
@@ -234,8 +171,6 @@ class Collection(BaseCollection):
         #                           last_modified=self.last_modified)
 
         #yield ((href, self.get(href)) for href in hrefs)
-
-        #collectionpath = os.path.dirname(self.path.href) + '/'
 
         items = Contact.objects.filter(collection=self.path)
         for i in items:
@@ -255,30 +190,6 @@ class Collection(BaseCollection):
 
             yield i.path, newItem
 
-
-
-        # files = None
-        # for href in hrefs:
-        #     # if files is None:
-        #     #     # List dir after hrefs returned one item, the iterator may be
-        #     #     # empty and the for-loop is never executed.
-        #     path = self.path + href
-        #     self.logger.debug(
-        #         "Can't translate: %r", href)
-        #     yield (href, None)
-        #     #yield (href, self.get(href, verify_href=False))
-        #
-        #
-        #     myhref = href
-        #
-        # collectionpath = os.path.dirname(self.path.href) + '/'
-        # itemname = os.path.basename(self.path.href)
-        #
-        # items = (Contact.objects.filter(collection=collectionpath).filter(path_in=hrefs))
-
-        # for item in items:
-        #     yield item.path, Item(self, href=item.path, last_modified=self.last_modified, name="VCARD", etag=item.etag, text=item.vcard, vobject=item.vcard)
-
     def has(self, href):
         # return (
         #     DBItem.objects
@@ -292,16 +203,16 @@ class Collection(BaseCollection):
 
 
     def delete(self, href=None):
-        if href is None:
-            DBItem.objects.filter(collection__path=self.path).delete()
-            DBCollection.objects.filter(path=self.path).delete()
-            DBProperties.objects.filter(path=self.path).delete()
-        else:
-            DBItem.objects.filter(
-                collection__path=self.path, path=href).delete()
+        # TODO: Implement and test this
+        # if href is None:
+        #     # DBItem.objects.filter(collection__path=self.path).delete()
+        #     # DBCollection.objects.filter(path=self.path).delete()
+        #     # DBProperties.objects.filter(path=self.path).delete()
+        # else:
+        DBItem.objects.filter(collection__path=self.path, path=href).delete()
 
     def set_meta(self, props):
-
+        # TODO: Test and implement this
         p, created = Contact.objects.filter(path=self.path)
         p.vcard = json.dump(props)
         p.save
@@ -312,10 +223,14 @@ class Collection(BaseCollection):
 
     def upload(self, href, vobject_item):
         # vobject_item.fn.value #Display name
-        c, created = Contact.objects.get_or_create(path=href, collection='addresses', vcard=vobject_item, name=vobject_item.fn.value)
+        c, created = Contact.objects.get_or_create(path=href,
+                                                   collection='pim/odd/addressbook',
+                                                   vcard=vobject_item,
+                                                   name=vobject_item.fn.value,
+                                                   etag=str(href).replace('.vcf', ''),
+                                                   )
         c.save()
         return c
-
 
     @property
     def last_modified(self):
