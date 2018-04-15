@@ -68,6 +68,7 @@ class Collection(BaseCollection):
                                   # name=c.name,
                                   component_name='VCARD',
                                   )
+                return
 
         else:
             if path == '/pim/odd/addressbook/' or path == '/pim/odd/addressbook':
@@ -90,12 +91,23 @@ class Collection(BaseCollection):
                                   )
 
                     yield thisItem
+                return
 
             else:
+                MyCollection = Collection('pim/odd/addressbook')
+                MyCollection.configuration = cls.configuration
+                # yield MyCollection
+
                 this_collection = os.path.dirname(path)
                 this_item = os.path.basename(path)
 
-                yield cls.get(cls, this_item)
+                i = MyCollection.get(this_item)
+                yield i
+
+
+
+                # else:
+                #     return
 
                 # for c in Contact.objects.filter(collection=this_collection).get(paht=this_item):
                 #     cls.get()
@@ -149,21 +161,25 @@ class Collection(BaseCollection):
         return
 
     def get(self, href):
-        c = Contact.objects.get(path=href)
-        this_item = Item(self,
-                                  # collection=MyCollection,
-                                  item=json.loads(c.vcard),
-                                  href=c.path,
-                                  last_modified=self.last_modified,
-                                  text=json.loads(c.vcard),
-                                  etag=c.etag,
-                                  uid=c.uuid,
-                                  name="VCARD",
-                                  # name=c.name,
-                                  component_name='VCARD',
-                                  )
+        try:
+            c = Contact.objects.get(path=href)
+            this_item = Item(self,
+                                      # collection=MyCollection,
+                                      item=json.loads(c.vcard),
+                                      href=c.path,
+                                      last_modified=self.last_modified,
+                                      text=json.loads(c.vcard),
+                                      etag=c.etag,
+                                      uid=c.uuid,
+                                      name="VCARD",
+                                      # name=c.name,
+                                      component_name='VCARD',
+                                      )
 
-        return this_item
+            return this_item
+        except Contact.DoesNotExist:
+            return None
+
 
     def get_multi(self, hrefs):
         items = self.get_multi2(hrefs)
@@ -171,7 +187,7 @@ class Collection(BaseCollection):
             list(zip(*items))[1]
 
     def get_multi2(self, hrefs):
-
+        ############# ORIGINAL CODE ######################################
         # items = (
         #     DBItem.objects
         #     .filter(collection__path=self.path)
@@ -179,26 +195,12 @@ class Collection(BaseCollection):
         # for item in items:
         #     yield item.path, Item(self, href=item.path,
         #                           last_modified=self.last_modified)
-
+        #
         #yield ((href, self.get(href)) for href in hrefs)
+        ###################################################################
 
-        items = Contact.objects.filter(collection=self.path)
-        for i in items:
-            newItem =  Item(
-                self,
-                # collection='/pim/odd/addresses/',
-                item=json.loads(i.vcard),
-                href=i.path,
-                last_modified=self.last_modified,
-                text=json.loads(i.vcard),
-                etag=i.etag,
-                uid=i.uuid,
-                name="VCARD",
-                # name=i.name,
-                component_name="VCARD",
-            )
-
-            yield i.path, newItem
+        for h in hrefs:
+            yield (h, self.get(h))
 
     def has(self, href):
         # return (
@@ -213,16 +215,34 @@ class Collection(BaseCollection):
 
 
     def delete(self, href=None):
-        # if href is None:
-        #     # DBItem.objects.filter(collection__path=self.path).delete()
-        #     # DBCollection.objects.filter(path=self.path).delete()
-        #     # DBProperties.objects.filter(path=self.path).delete()
-        # else:
-        # DBItem.objects.filter(collection__path=self.path, path=href).delete()
-
         # TODO: There are probably more cases that needs to be handled here.
-        if href is None and not hasattr(self, 'path'):
-            Contact.objects.filter(path=self).delete()
+        coll = self.path
+        itm = href
+        # transaction.atomic()
+        c = Contact.objects.filter(collection=coll, path=itm).delete()
+
+        print(c)
+
+
+        #
+        # if href is None and not hasattr(self, 'path'):
+        #     try:
+        #         Contact.objects.get(path=self).delete()
+        #     except Contact.DoesNotExist:
+        #         raise FileNotFoundError
+
+
+            # Contact.objects.filter(path=self).delete()
+
+
+        # # if href is None:
+        # #     # DBItem.objects.filter(collection__path=self.path).delete()
+        # #     # DBCollection.objects.filter(path=self.path).delete()
+        # #     # DBProperties.objects.filter(path=self.path).delete()
+        # # else:
+        # # DBItem.objects.filter(collection__path=self.path, path=href).delete()
+        #
+
 
 
     def set_meta(self, props):
@@ -236,15 +256,54 @@ class Collection(BaseCollection):
         # p.save()
 
     def upload(self, href, vobject_item):
-        # vobject_item.fn.value #Display name
-        c, created = Contact.objects.get_or_create(path=href,
-                                                   collection='pim/odd/addressbook',
-                                                   vcard=vobject_item,
-                                                   name=vobject_item.fn.value,
-                                                   etag=str(href).replace('.vcf', ''),
-                                                   )
-        c.save()
-        return c
+        db_item = Contact(path=href,
+                       collection='pim/odd/addressbook',
+                       vcard=vobject_item,
+                       name=vobject_item.fn.value,
+                       # etag=str(href).replace('.vcf', ''),
+                       )
+
+        db_item.save()
+
+        item = Item(self,
+                    # collection=MyCollection,
+                    item=vobject_item,
+                    href=href,
+                    last_modified=self.last_modified,
+                    text=vobject_item,
+                    etag=str(href).replace('.vcf', ''),
+                    # uid=c.uuid,
+                    name="VCARD",
+                    # name=c.name,
+                    component_name='VCARD',
+                    )
+
+        return item
+
+
+        # c, created = Contact.objects.get_or_create(path=href,
+        #                                            collection='pim/odd/addressbook',
+        #                                            vcard=vobject_item,
+        #                                            name=vobject_item.fn.value,
+        #                                            etag=str(href).replace('.vcf', ''),
+        #                                            )
+        # Contact.objects.update()
+        # # c.save()
+        #
+        # item = self.get(href)
+        #
+        # return item
+
+
+        # # vobject_item.fn.value #Display name
+        # c, created = Contact.objects.get_or_create(path=href,
+        #                                            collection='pim/odd/addressbook',
+        #                                            vcard=vobject_item,
+        #                                            name=vobject_item.fn.value,
+        #                                            etag=str(href).replace('.vcf', ''),
+        #                                            )
+        # c.save()
+        # yield c
 
     @property
     def last_modified(self):
