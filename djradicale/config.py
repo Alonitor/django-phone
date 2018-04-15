@@ -20,3 +20,6 @@ from django.apps import AppConfig
 class DjRadicaleConfig(AppConfig):
     name = 'djradicale'
     verbose_name = 'Radicale'
+
+
+

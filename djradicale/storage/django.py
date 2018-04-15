@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-# http://localhost:8000/pim/odd/addressbook.vcf/
+# http://localhost:8000/pim/odd/addressbook/
 
 import json
 import os
@@ -45,71 +45,67 @@ class Collection(BaseCollection):
 
     def __init__(self, path, **kwargs):
         self.path = path # This is uuid
+
         # self.path = '/odd/'
 
     @classmethod
-    def discover(cls, path, depth='0'):
+    def discover(cls, path, depth="0"):
         # for c in DBCollection.objects.filter(parent_path=path or ''):
         #     yield cls(c.path)
-
-
-
-        principalCollection = Collection('pim/odd')
-        # principalCollection.is_principal = True
-
-        MyCollection = Collection('pim/odd/addressbook')
-        # MyCollection.owner = 'pim/odd'
-        # MyCollection.is_principal = False
-
         if depth != '0':
-            if path == '/pim/odd/':
-                yield MyCollection
-                #yield cls('pim/odd/addressbook.vcf')
-                return
 
-            if path == '/odd/':
-                yield principalCollection
-                #yield cls('pim/odd')
-                return
+            if path == '/odd/' or path == '/pim/odd/addressbook/' or path == '/pim/odd/addressbook':
+                # yield principalCollection
+                principalcollection = cls('odd')
+                principalcollection.configuration = cls.configuration
+                yield principalcollection
 
-            if path == '/pim/odd/addressbook/':
-                yield principalCollection
+                MyCollection = Collection('pim/odd/addressbook')
+                MyCollection.configuration = cls.configuration
                 yield MyCollection
 
-                # yield cls('pim/odd')
-                #yield cls('pim/odd/addressbook.vcf')
-
-                for c in Contact.objects.filter(collection='addressbook.vcf' or ''):  # os.path.dirname(path)[1:]
-                    # yield cls(c.collection + '/' + c.path)
-                    j_vcard = json.loads(c.vcard)
-                    vo_vcard = vCard()
-                    vo_vcard = vobject.readOne(j_vcard)
-
+                for c in Contact.objects.filter(collection='pim/odd/addressbook' or ''):  # os.path.dirname(path)[1:]
                     yield Item(MyCollection,
                                   # collection=MyCollection,
-                                  item=vo_vcard,
+                                  item=json.loads(c.vcard),
                                   href=c.path,
                                   last_modified=cls.last_modified,
-                                  # text=str(vo_vcard),
+                                  text=json.loads(c.vcard),
                                   etag=c.etag,
                                   uid=c.uuid,
                                   name="VCARD",
                                   # name=c.name,
-                                  # component_name='VCARD',
+                                  component_name='VCARD',
                                   )
-                    # yield MyItem
-
-                return
 
         else:
-            return
+            if path == '/pim/odd/addressbook/' or path == '/pim/odd/addressbook':
+                MyCollection = Collection('pim/odd/addressbook')
+                MyCollection.configuration = cls.configuration
+                yield MyCollection
+
+                for c in Contact.objects.filter(collection='pim/odd/addressbook' or ''):  # os.path.dirname(path)[1:]
+                    thisItem = Item(MyCollection,
+                                  # collection=MyCollection,
+                                  item=json.loads(c.vcard),
+                                  href=c.path,
+                                  last_modified=cls.last_modified,
+                                  text=json.loads(c.vcard),
+                                  etag=c.etag,
+                                  uid=c.uuid,
+                                  name="VCARD",
+                                  # name=c.name,
+                                  component_name='VCARD',
+                                  )
+
+                    yield thisItem
 
     def get_meta(self, key=None):
         tmpprops = '{"tag": "VADDRESSBOOK", "D:displayname": "GDPRAdressBook", "{http://inf-it.com/ns/ab/}addressbook-color": "#730bd5ff", "CR:addressbook-description": "GDPR Test AdressBook"}'
 
         meta = {}
 
-        if self.path == 'pim/odd':
+        if self.path == 'odd':
             if key is None:
                 pass
 
@@ -152,7 +148,7 @@ class Collection(BaseCollection):
         #print('test')
 
 
-        items = Contact.objects.filter(collection=os.path.basename(self.path))
+        items = Contact.objects.filter(collection=self.path)
         for i in items:
             yield i.path
         #except Contact.DoesNotExist:
@@ -172,39 +168,54 @@ class Collection(BaseCollection):
     #     return etag
 
     def get(self, href):
-        print('test')
-        try:
-            # if type(self.path) is str:
-            item = os.path.basename(href)
-            # collection = os.path.dirname(href) + '/'
+        c = Contact.objects.get(path=href)
+        this_item =  Item(self,
+                                  # collection=MyCollection,
+                                  item=json.loads(c.vcard),
+                                  href=c.path,
+                                  last_modified=self.last_modified,
+                                  text=json.loads(c.vcard),
+                                  etag=c.etag,
+                                  uid=c.uuid,
+                                  name="VCARD",
+                                  # name=c.name,
+                                  component_name='VCARD',
+                                  )
 
+        return this_item
 
-            # else:
-            #     item = href
-            #     collection = os.path.dirname(self.path.href) + '/'
-
-            # item = (Contact.objects.filter(collection=collection).get(path=item))
-            c = (Contact.objects.get(path=href))
-            j_vcard = json.loads(c.vcard)
-            vo_vcard = vCard()
-            vo_vcard = vobject.readOne(j_vcard)
-
-            yield Item(
-                self,
-                # collection='/pim/odd/addresses/',
-                item=vo_vcard,
-                href=c.collection + c.path,
-                last_modified=self.last_modified,
-                # text=str(vo_vcard),
-                etag=c.etag,
-                uid=c.uuid,
-                # name="VCARD",
-                name=c.name,
-                #component_name='component'
-            )
-
-        except Contact.DoesNotExist:
-            pass
+    #         #try:
+#         # if type(self.path) is str:
+#         item = os.path.basename(href)
+#         # collection = os.path.dirname(href) + '/'
+#
+#
+#         # else:
+#         #     item = href
+#         #     collection = os.path.dirname(self.path.href) + '/'
+#
+#         # item = (Contact.objects.filter(collection=collection).get(path=item))
+#         c = (Contact.objects.get(path=href))
+#         j_vcard = json.loads(c.vcard)
+#         vo_vcard = vCard()
+#         vo_vcard = vobject.readOne(j_vcard)
+#
+#         yield Item(
+#             self,
+#             # collection='/pim/odd/addresses/',
+#             item=vo_vcard,
+#             href=c.collection + c.path,
+#             last_modified=self.last_modified,
+#             # text=str(vo_vcard),
+#             etag=c.etag,
+#             uid=c.uuid,
+#             # name="VCARD",
+#             name=c.name,
+#             #component_name='component'
+#         )
+#
+# #        except Contact.DoesNotExist:
+# #            pass
 
 
     def get_multi(self, hrefs):
@@ -213,6 +224,7 @@ class Collection(BaseCollection):
             list(zip(*items))[1]
 
     def get_multi2(self, hrefs):
+
         # items = (
         #     DBItem.objects
         #     .filter(collection__path=self.path)
@@ -225,27 +237,23 @@ class Collection(BaseCollection):
 
         #collectionpath = os.path.dirname(self.path.href) + '/'
 
-        items = Contact.objects.filter(collection=collectionpath)
+        items = Contact.objects.filter(collection=self.path)
         for i in items:
-            j_vcard = json.loads(i.vcard)
-            vo_vcard = vCard()
-            vo_vcard = vobject.readOne(j_vcard)
-            itempath = i.collection + i.path
-
-            yield itempath, Item(
+            newItem =  Item(
                 self,
                 # collection='/pim/odd/addresses/',
-                item=vo_vcard,
-                href=itempath,
+                item=json.loads(i.vcard),
+                href=i.path,
                 last_modified=self.last_modified,
-                 text=str(vo_vcard),
+                text=json.loads(i.vcard),
                 etag=i.etag,
                 uid=i.uuid,
                 name="VCARD",
                 # name=i.name,
-                #component_name=None
+                component_name="VCARD",
             )
 
+            yield i.path, newItem
 
 
 

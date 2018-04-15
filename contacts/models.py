@@ -15,7 +15,7 @@ class Contact(models.Model):
     # path = models.TextField('Path', unique=True)
     #path = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=True)
     path = models.TextField(blank=True)
-    collection = models.TextField('Collection', default='odd/addressbook.vcf')
+    collection = models.TextField('Collection', default='pim/odd/addressbook')
     etag = models.TextField(blank=True)
     uuid = models.UUIDField(primary_key=False, default=uuid.uuid4, editable=False)
 
