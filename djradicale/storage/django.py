@@ -203,15 +203,16 @@ class Collection(BaseCollection):
             yield (h, self.get(h))
 
     def has(self, href):
-        # return (
-        #     DBItem.objects
-        #     .filter(collection__path=self.path, path=href)
+        print('test')
+        # # return (
+        # #     DBItem.objects
+        # #     .filter(collection__path=self.path, path=href)
+        # #     .exists())
+        #
+        # return(
+        #     Contact.objects
+        #     .filter(collection=self.path, path=href)
         #     .exists())
-
-        return(
-            Contact.objects
-            .filter(collection=self.path, path=href)
-            .exists())
 
 
     def delete(self, href=None):
@@ -220,30 +221,6 @@ class Collection(BaseCollection):
         itm = href
         # transaction.atomic()
         c = Contact.objects.filter(collection=coll, path=itm).delete()
-
-        print(c)
-
-
-        #
-        # if href is None and not hasattr(self, 'path'):
-        #     try:
-        #         Contact.objects.get(path=self).delete()
-        #     except Contact.DoesNotExist:
-        #         raise FileNotFoundError
-
-
-            # Contact.objects.filter(path=self).delete()
-
-
-        # # if href is None:
-        # #     # DBItem.objects.filter(collection__path=self.path).delete()
-        # #     # DBCollection.objects.filter(path=self.path).delete()
-        # #     # DBProperties.objects.filter(path=self.path).delete()
-        # # else:
-        # # DBItem.objects.filter(collection__path=self.path, path=href).delete()
-        #
-
-
 
     def set_meta(self, props):
         # TODO: Test and implement this
@@ -256,14 +233,15 @@ class Collection(BaseCollection):
         # p.save()
 
     def upload(self, href, vobject_item):
-        db_item = Contact(path=href,
+        # TODO: Dette funker ikke helt som det skal, må få til redigering.
+        c, created = Contact.objects.get_or_create(path=href,
                        collection='pim/odd/addressbook',
                        vcard=vobject_item,
                        name=vobject_item.fn.value,
                        # etag=str(href).replace('.vcf', ''),
                        )
 
-        db_item.save()
+        c.save()
 
         item = Item(self,
                     # collection=MyCollection,
@@ -279,31 +257,6 @@ class Collection(BaseCollection):
                     )
 
         return item
-
-
-        # c, created = Contact.objects.get_or_create(path=href,
-        #                                            collection='pim/odd/addressbook',
-        #                                            vcard=vobject_item,
-        #                                            name=vobject_item.fn.value,
-        #                                            etag=str(href).replace('.vcf', ''),
-        #                                            )
-        # Contact.objects.update()
-        # # c.save()
-        #
-        # item = self.get(href)
-        #
-        # return item
-
-
-        # # vobject_item.fn.value #Display name
-        # c, created = Contact.objects.get_or_create(path=href,
-        #                                            collection='pim/odd/addressbook',
-        #                                            vcard=vobject_item,
-        #                                            name=vobject_item.fn.value,
-        #                                            etag=str(href).replace('.vcf', ''),
-        #                                            )
-        # c.save()
-        # yield c
 
     @property
     def last_modified(self):
